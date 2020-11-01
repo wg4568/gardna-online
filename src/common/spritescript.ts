@@ -152,6 +152,11 @@ export function Compile(
             }
         }
 
+        if (first == "#") {
+            i++;
+            while (code[i] != "\n") i++;
+        }
+
         if (/^[a-zA-Z]+$/.test(first)) {
             type = Type.Keyword;
             while (/^[a-zA-Z0-9_]+$/.test(code[i])) {
@@ -296,7 +301,7 @@ export class SpriteScript {
     render(
         ctx: CanvasRenderingContext2D,
         posn: { x: number; y: number },
-        args: number[] = []
+        args: (number | string)[] = []
     ) {
         if (this.canvas) {
             if (args.length != 0)
@@ -316,7 +321,7 @@ export class SpriteScript {
         }
     }
 
-    renderCache(args: number[] = []) {
+    renderCache(args: (number | string)[] = []) {
         if (!this.canvas) throw new Error("Cache not enabled on this script");
         var ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 
@@ -402,7 +407,7 @@ export class SpriteScript {
     static Render(
         binary: Uint8Array,
         labels: string[],
-        args: number[],
+        args: (number | string)[],
         idx: number,
         ctx: CanvasRenderingContext2D,
         posn: { x: number; y: number }
@@ -432,7 +437,7 @@ export class SpriteScript {
         binary: Uint8Array,
         stack: number[],
         labels: string[],
-        args: number[],
+        args: (number | string)[],
         idx: number,
         ctx: CanvasRenderingContext2D
     ): number {
@@ -453,7 +458,21 @@ export class SpriteScript {
                         `Cannot get arg ${argNum}, arglist too short`
                     );
 
-                stack.push(args[argNum]);
+                let arg = args[argNum];
+                if (typeof args[argNum] == "number") {
+                    arg = arg as number;
+                    stack.push(arg);
+                } else {
+                    arg = arg as string;
+                    let lbl = labels.indexOf(arg);
+                    if (lbl == -1) {
+                        stack.push(labels.length);
+                        labels.push(arg);
+                    } else {
+                        stack.push(lbl);
+                    }
+                }
+
                 idx++;
                 break;
             }
