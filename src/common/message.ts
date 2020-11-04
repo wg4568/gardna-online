@@ -1,32 +1,46 @@
 import { Color } from "./helpers/color";
-import { EncodeInt8, EncodeString, EncodeUint8 } from "./helpers/encoding";
-import { JoinBuffers } from "./helpers/helpers";
-import * as encoding from "./helpers/encoding";
+import { Data, DecodeMulti, EncodeMulti, Type } from "./helpers/encoding";
 
-function SerializePlayer(id: number, username: string, color: Color) {
-    return JoinBuffers([
-        encoding.EncodeUint16(id),
-        encoding.EncodeString(username),
-        encoding.EncodeUint8(color.red),
-        encoding.EncodeUint8(color.green),
-        encoding.EncodeUint8(color.blue)
-    ]);
+class Player {
+    static readonly Schema: Type[] = [
+        Type.Uint16,
+        Type.String,
+        Type.Uint8,
+        Type.Uint8,
+        Type.Uint8
+    ];
+
+    public id: number;
+    public username: string;
+    public color: Color;
+
+    constructor(id: number, username: string, color: Color) {
+        this.id = id;
+        this.username = username;
+        this.color = color;
+    }
+
+    static Serialize(player: Player): Uint8Array {
+        return EncodeMulti(
+            [
+                player.id,
+                player.username,
+                player.color.red,
+                player.color.green,
+                player.color.blue
+            ],
+            Player.Schema
+        );
+    }
+
+    static Deserialize(data: Uint8Array): Player {
+        var [id, username, r, g, b] = DecodeMulti(data, Player.Schema);
+        var color = new Color(r as number, g as number, b as number);
+        return new Player(id as number, username as string, color);
+    }
 }
 
-function DeserializePlayerdata(data: Uint8Array) {
-    var idx = 0;
+var player = new Player(0, "wg4568", Color.RandomPastel());
+var data = Player.Serialize(player);
 
-    var id = encoding.DecodeUint16(data, idx);
-    var username = encoding.DecodeString(data, (idx += 2));
-    var red = encoding.DecodeUint8(data, (idx += username.length + 1));
-    var green = encoding.DecodeUint8(data, (idx += 1));
-    var blue = encoding.DecodeUint8(data, (idx += 1));
-
-    var color = new Color(red, green, blue);
-
-    return { id, username, color };
-}
-
-var p = SerializePlayer(56, "William", new Color(1, 2, 3));
-
-console.log(p, DeserializePlayerdata(p));
+console.log(data, Player.Deserialize(data));

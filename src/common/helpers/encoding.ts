@@ -1,5 +1,7 @@
+import { JoinBuffers } from "./helpers";
+
 // I hate this entire file but it does its job and works just fine
-type BoolByte = [
+export type Flags = [
     boolean,
     boolean,
     boolean,
@@ -10,11 +12,147 @@ type BoolByte = [
     boolean
 ];
 
-export function EncodeFloat(value: number): Uint8Array {
+export enum Type {
+    Float32,
+    Float64,
+    Uint8,
+    Int8,
+    Uint16,
+    Int16,
+    Uint32,
+    Int32,
+    Boolean,
+    Flags,
+    String,
+    LongString,
+    Array,
+    LongArray
+}
+
+export type Data = number | string | boolean | Flags | Uint8Array[];
+
+export function DecodeMulti(data: Uint8Array, types: Type[]): Data[] {
+    var decoded: Data[] = [];
+    var idx = 0;
+
+    for (var i = 0; i < types.length; i++) {
+        switch (types[i]) {
+            case Type.Float32:
+                decoded.push(DecodeFloat32(data, idx));
+                idx += 4;
+                break;
+            case Type.Float64:
+                decoded.push(DecodeFloat64(data, idx));
+                idx += 8;
+                break;
+            case Type.Uint8:
+                decoded.push(DecodeUint8(data, idx));
+                idx += 1;
+                break;
+            case Type.Int8:
+                decoded.push(DecodeInt8(data, idx));
+                idx += 2;
+                break;
+            case Type.Uint16:
+                decoded.push(DecodeUint16(data, idx));
+                idx += 2;
+                break;
+            case Type.Uint32:
+                decoded.push(DecodeUint32(data, idx));
+                idx += 4;
+                break;
+            case Type.Int32:
+                decoded.push(DecodeInt32(data, idx));
+                idx += 4;
+                break;
+            case Type.Boolean:
+                decoded.push(DecodeBoolean(data, idx));
+                idx += 1;
+                break;
+            case Type.Flags:
+                decoded.push(DecodeFlags(data, idx));
+                idx += 1;
+                break;
+            case Type.String:
+                let str = DecodeString(data, idx);
+                decoded.push(str);
+                idx += 1 + str.length;
+                break;
+            case Type.LongString:
+                let longstr = DecodeLongString(data, idx);
+                decoded.push(longstr);
+                idx += 1 + longstr.length;
+                break;
+            case Type.Array:
+                let array = DecodeArray(data, idx);
+                decoded.push(array);
+                idx +=
+                    1 +
+                    array.length +
+                    array.map((e) => e.length).reduce((a, b) => a + b);
+                break;
+        }
+    }
+
+    return decoded;
+}
+
+export function EncodeMulti(data: Data[], types: Type[]): Uint8Array {
+    var elements: Uint8Array[] = [];
+
+    for (var i = 0; i < types.length; i++) {
+        switch (types[i]) {
+            case Type.Float32:
+                elements.push(EncodeFloat32(data[i] as number));
+                break;
+            case Type.Float64:
+                elements.push(EncodeFloat64(data[i] as number));
+                break;
+            case Type.Uint8:
+                elements.push(EncodeUint8(data[i] as number));
+                break;
+            case Type.Int8:
+                elements.push(EncodeInt8(data[i] as number));
+                break;
+            case Type.Uint16:
+                elements.push(EncodeUint16(data[i] as number));
+                break;
+            case Type.Uint32:
+                elements.push(EncodeUint32(data[i] as number));
+                break;
+            case Type.Int32:
+                elements.push(EncodeInt32(data[i] as number));
+                break;
+            case Type.Boolean:
+                elements.push(EncodeBoolean(data[i] as boolean));
+                break;
+            case Type.Flags:
+                elements.push(EncodeFlags(data[i] as Flags));
+                break;
+            case Type.String:
+                elements.push(EncodeString(data[i] as string));
+                break;
+            case Type.LongString:
+                elements.push(EncodeLongString(data[i] as string));
+                break;
+            case Type.Array:
+                elements.push(EncodeArray(data[i] as Uint8Array[]));
+                break;
+            case Type.LongArray:
+                elements.push(EncodeLongArray(data[i] as Uint8Array[]));
+                break;
+        }
+    }
+
+    return JoinBuffers(elements);
+}
+
+// TYPE ENCODING
+export function EncodeFloat32(value: number): Uint8Array {
     return new Uint8Array(new Float32Array([value]).buffer);
 }
 
-export function EncodeLongFloat(value: number): Uint8Array {
+export function EncodeFloat64(value: number): Uint8Array {
     return new Uint8Array(new Float64Array([value]).buffer);
 }
 
@@ -31,7 +169,7 @@ export function EncodeUint16(value: number): Uint8Array {
 }
 
 export function EncodeInt16(value: number): Uint8Array {
-    return new Uint8Array(new Int16Array([value]).buffer);
+    return EncodeUint16(value);
 }
 
 export function EncodeUint32(value: number): Uint8Array {
@@ -39,14 +177,14 @@ export function EncodeUint32(value: number): Uint8Array {
 }
 
 export function EncodeInt32(value: number): Uint8Array {
-    return new Uint8Array(new Int32Array([value]).buffer);
+    return EncodeUint32(value);
 }
 
 export function EncodeBoolean(value: boolean): Uint8Array {
     return new Uint8Array(new Uint8Array([value ? 255 : 0]).buffer);
 }
 
-export function EncodeFlags(value: BoolByte): Uint8Array {
+export function EncodeFlags(value: Flags): Uint8Array {
     var byte: number = 0;
     for (var i = 0; i < value.length; i++)
         byte = byte | ((value[i] ? 1 : 0) << (7 - i));
@@ -72,11 +210,34 @@ export function EncodeLongString(str: string): Uint8Array {
     return array;
 }
 
-export function DecodeFloat(data: Uint8Array, idx: number = 0): number {
+export function EncodeArray(data: Uint8Array[]): Uint8Array {
+    var buffers: Uint8Array[] = [EncodeUint8(data.length)];
+
+    for (var i = 0; i < data.length; i++) {
+        buffers.push(EncodeUint8(data[i].length));
+        buffers.push(data[i]);
+    }
+
+    return JoinBuffers(buffers);
+}
+
+export function EncodeLongArray(data: Uint8Array[]): Uint8Array {
+    var buffers: Uint8Array[] = [EncodeUint16(data.length)];
+
+    for (var i = 0; i < data.length; i++) {
+        buffers.push(EncodeUint16(data[i].length));
+        buffers.push(data[i]);
+    }
+
+    return JoinBuffers(buffers);
+}
+
+// TYPE DECODING
+export function DecodeFloat32(data: Uint8Array, idx: number = 0): number {
     return new Float32Array(data.slice(idx, idx + 4).buffer)[0];
 }
 
-export function DecodeLongFloat(data: Uint8Array, idx: number = 0): number {
+export function DecodeFloat64(data: Uint8Array, idx: number = 0): number {
     return new Float64Array(data.slice(idx, idx + 8).buffer)[0];
 }
 
@@ -108,18 +269,9 @@ export function DecodeBoolean(data: Uint8Array, idx: number = 0): boolean {
     return data[idx] != 0;
 }
 
-export function DecodeFlags(data: Uint8Array, idx: number = 0): BoolByte {
+export function DecodeFlags(data: Uint8Array, idx: number = 0): Flags {
     var number = data[idx];
-    var flags: BoolByte = [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-    ];
+    var flags: Flags = [false, false, false, false, false, false, false, false];
 
     for (var i = 0; i < 8; i++) flags[i] = (number & (1 << (7 - i))) != 0;
 
@@ -145,3 +297,35 @@ export function DecodeLongString(data: Uint8Array, idx: number = 0): string {
 
     return str;
 }
+
+export function DecodeArray(data: Uint8Array, idx: number): Uint8Array[] {
+    var array: Uint8Array[] = [];
+    var elements: number = DecodeUint8(data, 0);
+    var idx = 1;
+
+    for (var i = 0; i < elements; i++) {
+        let length: number = DecodeUint8(data, idx);
+        array.push(data.slice(idx + 1, idx + 1 + length));
+        idx += 1 + length;
+    }
+
+    return array;
+}
+
+export function DecodeLongArray(data: Uint8Array, idx: number): Uint8Array[] {
+    var array: Uint8Array[] = [];
+    var elements: number = DecodeUint16(data, 0);
+    var idx = 2;
+
+    for (var i = 0; i < elements; i++) {
+        let length: number = DecodeUint16(data, idx);
+        array.push(data.slice(idx + 2, idx + 2 + length));
+        idx += 2 + length;
+    }
+
+    return array;
+}
+
+var x = EncodeArray([EncodeFloat64(1.23456), EncodeFloat64(Math.PI)]);
+console.log(x);
+console.log(DecodeArray(x, 0).map((e) => DecodeFloat64(e)));
