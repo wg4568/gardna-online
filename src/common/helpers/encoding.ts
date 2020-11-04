@@ -73,11 +73,11 @@ export function EncodeLongString(str: string): Uint8Array {
 }
 
 export function DecodeFloat(data: Uint8Array, idx: number = 0): number {
-    return new Float32Array(data.subarray(idx, idx + 4).buffer)[0];
+    return new Float32Array(data.slice(idx, idx + 4).buffer)[0];
 }
 
 export function DecodeLongFloat(data: Uint8Array, idx: number = 0): number {
-    return new Float64Array(data.subarray(idx, idx + 8).buffer)[0];
+    return new Float64Array(data.slice(idx, idx + 8).buffer)[0];
 }
 
 export function DecodeUint8(data: Uint8Array, idx: number = 0): number {
@@ -85,23 +85,23 @@ export function DecodeUint8(data: Uint8Array, idx: number = 0): number {
 }
 
 export function DecodeInt8(data: Uint8Array, idx: number = 0): number {
-    return new Int8Array(data.subarray(idx, idx + 1).buffer)[0];
+    return new Int8Array(data.slice(idx, idx + 1).buffer)[0];
 }
 
 export function DecodeUint16(data: Uint8Array, idx: number = 0): number {
-    return new Uint16Array(data.subarray(idx, idx + 2).buffer)[0];
+    return new Uint16Array(data.slice(idx, idx + 2).buffer)[0];
 }
 
 export function DecodeInt16(data: Uint8Array, idx: number = 0): number {
-    return new Int16Array(data.subarray(idx, idx + 2).buffer)[0];
+    return new Int16Array(data.slice(idx, idx + 2).buffer)[0];
 }
 
 export function DecodeUint32(data: Uint8Array, idx: number = 0): number {
-    return new Uint32Array(data.subarray(idx, idx + 4).buffer)[0];
+    return new Uint32Array(data.slice(idx, idx + 4).buffer)[0];
 }
 
 export function DecodeInt32(data: Uint8Array, idx: number = 0): number {
-    return new Int32Array(data.subarray(idx, idx + 4).buffer)[0];
+    return new Int32Array(data.slice(idx, idx + 4).buffer)[0];
 }
 
 export function DecodeBoolean(data: Uint8Array, idx: number = 0): boolean {
@@ -126,34 +126,22 @@ export function DecodeFlags(data: Uint8Array, idx: number = 0): BoolByte {
     return flags;
 }
 
-export function DecodeString(
-    data: Uint8Array,
-    idx: number = 0
-): { value: string; delta: number } {
+export function DecodeString(data: Uint8Array, idx: number = 0): string {
     var str = "";
     var length = DecodeUint8(data, idx);
 
     for (var i = 0; i < length; i++)
         str += String.fromCharCode(data[idx + 1 + i]);
 
-    return {
-        value: str,
-        delta: 1 + length
-    };
+    return str;
 }
 
-export function DecodeLongString(
-    data: Uint8Array,
-    idx: number = 0
-): { value: string; delta: number } {
+export function DecodeLongString(data: Uint8Array, idx: number = 0): string {
     var str = "";
     var length = DecodeUint16(data, idx);
 
     for (var i = 0; i < length; i++)
         str += String.fromCharCode(data[idx + 2 + i]);
 
-    return {
-        value: str,
-        delta: 2 + length
-    };
+    return str;
 }

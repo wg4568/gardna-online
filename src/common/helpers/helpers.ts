@@ -73,9 +73,15 @@ export function RandomString() {
     return s1 + s2;
 }
 
-export function JoinBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
-    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-    tmp.set(new Uint8Array(buffer1), 0);
-    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-    return tmp.buffer;
+export function JoinBuffers(buffers: Uint8Array[]) {
+    var length = buffers.map((b) => b.length).reduce((a, b) => a + b);
+    var tmp = new Uint8Array(length);
+    var idx = 0;
+
+    for (var i = 0; i < buffers.length; i++) {
+        tmp.set(buffers[i], idx);
+        idx += buffers[i].length;
+    }
+
+    return tmp;
 }
