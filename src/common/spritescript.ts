@@ -137,6 +137,7 @@ export function Compile(
     var tokens: [Type, string][] = [];
     var i: number = 0;
 
+    code = code.replace(/\r\n/g, "\n"); // windows line endings
     code += "\n"; // guarantee termination
     while (i < code.length) {
         let first = code[i];
@@ -337,6 +338,10 @@ export class SpriteScript {
 
     toBase64(): string {
         return Base64.fromUint8Array(this.bytecode);
+    }
+
+    static ToBase64(bytecode: Uint8Array) {
+        return Base64.fromUint8Array(bytecode);
     }
 
     static FromBase64(

@@ -72,3 +72,10 @@ export function RandomString() {
     var s2 = Math.random().toString(36).substring(2, 15);
     return s1 + s2;
 }
+
+export function JoinBuffers(buffer1: ArrayBuffer, buffer2: ArrayBuffer) {
+    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+    tmp.set(new Uint8Array(buffer1), 0);
+    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+    return tmp.buffer;
+}
