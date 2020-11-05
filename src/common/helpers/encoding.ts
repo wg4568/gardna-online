@@ -91,6 +91,14 @@ export function DecodeMulti(data: Uint8Array, types: Type[]): Data[] {
                     array.length +
                     array.map((e) => e.length).reduce((a, b) => a + b);
                 break;
+            case Type.LongArray:
+                let longarray = DecodeLongArray(data, idx);
+                decoded.push(longarray);
+                idx +=
+                    2 +
+                    longarray.length * 2 +
+                    longarray.map((e) => e.length).reduce((a, b) => a + b);
+                break;
         }
     }
 
@@ -300,13 +308,13 @@ export function DecodeLongString(data: Uint8Array, idx: number = 0): string {
 
 export function DecodeArray(data: Uint8Array, idx: number): Uint8Array[] {
     var array: Uint8Array[] = [];
-    var elements: number = DecodeUint8(data, 0);
-    var idx = 1;
+    var elements: number = DecodeUint8(data, idx);
+    var posn = idx + 1;
 
     for (var i = 0; i < elements; i++) {
-        let length: number = DecodeUint8(data, idx);
-        array.push(data.slice(idx + 1, idx + 1 + length));
-        idx += 1 + length;
+        let length: number = DecodeUint8(data, posn);
+        array.push(data.slice(posn + 1, posn + 1 + length));
+        posn += 1 + length;
     }
 
     return array;
@@ -314,18 +322,14 @@ export function DecodeArray(data: Uint8Array, idx: number): Uint8Array[] {
 
 export function DecodeLongArray(data: Uint8Array, idx: number): Uint8Array[] {
     var array: Uint8Array[] = [];
-    var elements: number = DecodeUint16(data, 0);
-    var idx = 2;
+    var elements: number = DecodeUint16(data, idx);
+    var posn = idx + 2;
 
     for (var i = 0; i < elements; i++) {
-        let length: number = DecodeUint16(data, idx);
-        array.push(data.slice(idx + 2, idx + 2 + length));
-        idx += 2 + length;
+        let length: number = DecodeUint16(data, posn);
+        array.push(data.slice(posn + 2, posn + 2 + length));
+        posn += 2 + length;
     }
 
     return array;
 }
-
-var x = EncodeArray([EncodeFloat64(1.23456), EncodeFloat64(Math.PI)]);
-console.log(x);
-console.log(DecodeArray(x, 0).map((e) => DecodeFloat64(e)));
