@@ -1,6 +1,6 @@
-import { SIGCHLD } from "constants";
+import WebSocket from "ws";
 
-class Client {
+export class Client {
     public socket: WebSocket;
 
     constructor(socket: WebSocket) {
