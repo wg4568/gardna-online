@@ -1,26 +1,20 @@
-import { Color } from "./helpers/color";
-import * as PlayerData from "./packets/playerdata";
-
-export function ParsePacket(binary: Uint8Array) {
-    var type: PacketType = binary[0];
-    var contents: Uint8Array = binary.slice(1);
-    var data: any;
-
-    switch (type) {
-        case PacketType.PlayerData:
-            data = PlayerData.Deserialize(contents);
-            break;
-    }
-
-    return { type, data };
-}
+import { JoinBuffers } from "./helpers/helpers";
 
 export enum PacketType {
-    PlayerData = 0
+    Connect,
+    Disconnect,
+    PlayerData
 }
 
-var x = PlayerData.Serialize({
-    id: 1,
-    username: "william",
-    color: new Color(30, 40, 50)
-});
+export function SplitPacket(
+    data: Uint8Array
+): { type: PacketType; packet: Uint8Array } {
+    return { type: data[0] as PacketType, packet: data.slice(1) };
+}
+
+export function JoinPacket(
+    type: PacketType,
+    packet: Uint8Array = new Uint8Array(0)
+): Uint8Array {
+    return JoinBuffers([new Uint8Array([type]), packet]);
+}
