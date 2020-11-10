@@ -306,7 +306,7 @@ export function DecodeLongString(data: Uint8Array, idx: number = 0): string {
     return str;
 }
 
-export function DecodeArray(data: Uint8Array, idx: number): Uint8Array[] {
+export function DecodeArray(data: Uint8Array, idx: number = 0): Uint8Array[] {
     var array: Uint8Array[] = [];
     var elements: number = DecodeUint8(data, idx);
     var posn = idx + 1;
@@ -320,7 +320,10 @@ export function DecodeArray(data: Uint8Array, idx: number): Uint8Array[] {
     return array;
 }
 
-export function DecodeLongArray(data: Uint8Array, idx: number): Uint8Array[] {
+export function DecodeLongArray(
+    data: Uint8Array,
+    idx: number = 0
+): Uint8Array[] {
     var array: Uint8Array[] = [];
     var elements: number = DecodeUint16(data, idx);
     var posn = idx + 2;

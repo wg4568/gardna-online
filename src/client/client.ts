@@ -1,57 +1,48 @@
 import { Color } from "../common/helpers/color";
-import { DecodeMulti, EncodeMulti, Type } from "../common/helpers/encoding";
+import { DecodeArray, DecodeMulti, Type } from "../common/helpers/encoding";
 import { Vector2 } from "../common/helpers/vector";
 import { PacketType, SplitPacket } from "../common/packets";
+import { InitInputs } from "./input";
 
-const socket = new WebSocket("ws://localhost:3000");
+import config from "../../config.json";
+import { Renderer } from "./renderer";
+
+const socket = new WebSocket(
+    `${config.wss ? "wss" : "ws"}://${config.host}:${config.port}`
+);
 socket.binaryType = "arraybuffer";
+InitInputs(socket);
 
-class Player {
-    public readonly id: number;
-    public username: string;
-    public color: Color;
-    public position: Vector2 = Vector2.Empty();
+socket.onopen = () => {};
 
-    constructor(id: number, username: string, color: Color) {
-        this.id = id;
-        this.username = username;
-        this.color = color;
-    }
-}
-
-export var players = new Map<number, Player>();
-
-socket.onopen = () => {
-    socket.send(
-        EncodeMulti(
-            ["William", 255, 0, 0],
-            [Type.String, Type.Uint8, Type.Uint8]
-        )
-    );
-};
+var players: { id: number; posn: Vector2 }[] = [];
+var renderer = new Renderer("canvas", true);
 
 socket.onmessage = (msg) => {
     var { type, packet } = SplitPacket(new Uint8Array(msg.data));
     switch (type) {
-        case PacketType.PlayerData: {
-            let [id, username, r, g, b] = DecodeMulti(packet, [
-                Type.Uint16,
-                Type.String,
-                Type.Uint8,
-                Type.Uint8,
-                Type.Uint8
-            ]);
-            var color = new Color(r as number, g as number, b as number);
-            id = id as number;
-            username = username as string;
-
-            let p = players.get(id);
-            if (p) {
-                p.username = username;
-                p.color = color;
-            } else {
-                players.set(id, new Player(id, username, color));
-            }
+        case PacketType.Positions: {
+            players = DecodeArray(packet).map((d) => {
+                let [id, x, y] = DecodeMulti(d, [
+                    Type.Uint16,
+                    Type.Uint16,
+                    Type.Uint16
+                ]);
+                return {
+                    id: id as number,
+                    posn: new Vector2(x as number, y as number)
+                };
+            });
         }
     }
 };
+
+const background = Color.RandomPastel();
+setInterval(() => {
+    renderer.fill(background);
+
+    players.forEach((p) => {
+        renderer.ctx.fillStyle = "black";
+        renderer.ctx.fillRect(p.posn.x, p.posn.y, 10, 10);
+    });
+}, 1000 / config.client_fps);

@@ -1,9 +1,16 @@
 import { JoinBuffers } from "./helpers/helpers";
 
 export enum PacketType {
-    Connect,
     Disconnect,
-    PlayerData
+
+    PlayerData,
+    Positions,
+
+    KeyDown,
+    KeyUp,
+    MouseDown,
+    MouseUp,
+    MouseMove
 }
 
 export function SplitPacket(
