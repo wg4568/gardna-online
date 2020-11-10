@@ -1,48 +1,20 @@
 import { Color } from "../common/helpers/color";
-import { DecodeArray, DecodeMulti, Type } from "../common/helpers/encoding";
-import { Vector2 } from "../common/helpers/vector";
-import { PacketType, SplitPacket } from "../common/packets";
-import { InitInputs } from "./input";
+import { Renderer } from "./renderer";
+import { Connection } from "../common/connection";
 
 import config from "../../config.json";
-import { Renderer } from "./renderer";
+import { KeyDownPacket } from "../common/packets";
 
-const socket = new WebSocket(
-    `${config.wss ? "wss" : "ws"}://${config.host}:${config.port}`
-);
-socket.binaryType = "arraybuffer";
-InitInputs(socket);
+var url = `${config.wss ? "wss" : "ws"}://${config.host}:${config.port}`;
 
-socket.onopen = () => {};
+const socket = new Connection(new WebSocket(url));
+const renderer = new Renderer("canvas", true);
 
-var players: { id: number; posn: Vector2 }[] = [];
-var renderer = new Renderer("canvas", true);
+socket.listen(KeyDownPacket, (data) => {
+    console.log(data);
+});
 
-socket.onmessage = (msg) => {
-    var { type, packet } = SplitPacket(new Uint8Array(msg.data));
-    switch (type) {
-        case PacketType.Positions: {
-            players = DecodeArray(packet).map((d) => {
-                let [id, x, y] = DecodeMulti(d, [
-                    Type.Uint16,
-                    Type.Uint16,
-                    Type.Uint16
-                ]);
-                return {
-                    id: id as number,
-                    posn: new Vector2(x as number, y as number)
-                };
-            });
-        }
-    }
-};
-
-const background = Color.RandomPastel();
+export const background = Color.RandomPastel();
 setInterval(() => {
     renderer.fill(background);
-
-    players.forEach((p) => {
-        renderer.ctx.fillStyle = "black";
-        renderer.ctx.fillRect(p.posn.x, p.posn.y, 10, 10);
-    });
 }, 1000 / config.client_fps);
