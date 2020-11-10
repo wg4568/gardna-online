@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Compile } from "../common/spritescript";
+import { Compile } from "../lib/spritescript";
 
 export default function LoadSprites(
     dirname: string

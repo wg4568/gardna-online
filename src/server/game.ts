@@ -1,6 +1,5 @@
 import WS from "ws";
 import LoadSprites from "./sprites";
-// import { Client } from "./client";
 
 import config from "../../config.json";
 import { CreatePacket, KeyDownPacket } from "../common/packets";

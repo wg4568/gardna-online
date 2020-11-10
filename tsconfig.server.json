@@ -1,6 +1,6 @@
 {
     "extends": "./tsconfig.json",
-    "include": ["src/server", "src/common"],
+    "include": ["src/server", "src/common", "src/lib"],
     "compilerOptions": {
         "noEmit": false,
         "outDir": "build"

@@ -1,4 +1,4 @@
-import { Color } from "../common/helpers/color";
+import { Color } from "../lib/color";
 
 export class Renderer {
     canvas: HTMLCanvasElement;

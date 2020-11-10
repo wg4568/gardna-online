@@ -1,5 +1,5 @@
 import { OpenEvent } from "ws";
-import { Data } from "./helpers/encoding";
+import { Data } from "../lib/encoding";
 import {
     CreatePacket,
     PacketFormat,

@@ -1,4 +1,4 @@
-import { Color } from "../common/helpers/color";
+import { Color } from "../lib/color";
 import { Renderer } from "./renderer";
 import { Connection } from "../common/connection";
 
@@ -9,6 +9,8 @@ var url = `${config.wss ? "wss" : "ws"}://${config.host}:${config.port}`;
 
 const socket = new Connection(new WebSocket(url));
 const renderer = new Renderer("canvas", true);
+
+socket.open(() => {});
 
 socket.listen(KeyDownPacket, (data) => {
     console.log(data);

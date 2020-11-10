@@ -1,5 +1,5 @@
-import { Data, DecodeMulti, EncodeMulti, Type } from "./helpers/encoding";
-import { JoinBuffers } from "./helpers/helpers";
+import { Data, DecodeMulti, EncodeMulti, Type } from "../lib/encoding";
+import { JoinBuffers } from "../lib/helpers";
 
 export class PacketMismatchError extends Error {
     constructor(actual: PacketType, attempted: PacketType) {
