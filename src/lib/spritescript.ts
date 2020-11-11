@@ -126,13 +126,17 @@ export enum Enum {
 
 export function Compile(
     code: string,
-    constants: { [key: string]: number } = {}
+    userConstants: Map<string, number> = new Map<string, number>()
 ) {
     enum Type {
         Keyword,
         Number,
         String
     }
+
+    SpriteScript.Constants.forEach((val, name) => {
+        if (!userConstants.has(name)) userConstants.set(name, val);
+    });
 
     var tokens: [Type, string][] = [];
     var i: number = 0;
@@ -199,7 +203,8 @@ export function Compile(
         else if (keyword == "FALSE") return 0;
         else if (Object.values(Enum).includes(keyword))
             return Enum[keyword as keyof typeof Enum];
-        else if (keyword in constants) return constants[keyword];
+        else if (userConstants.has(keyword))
+            return userConstants.get(keyword) as number;
         return labelIndexStore[keyword];
     }
 
@@ -260,6 +265,12 @@ export function Compile(
     return new Uint8Array(data);
 }
 
+export type ScriptOptions = {
+    cache?: boolean;
+    width?: number;
+    height?: number;
+};
+
 export class SpriteScript {
     public readonly bytecode: Uint8Array;
     public readonly labels: string[];
@@ -267,17 +278,13 @@ export class SpriteScript {
     public canvas: HTMLCanvasElement | null = null;
 
     public static Debug: boolean = false;
-    public static readonly Constants = {
-        PI: Math.PI
-    };
+    public static readonly Constants = new Map<string, number>([
+        ["PI", Math.PI]
+    ]);
 
     constructor(
         bytecode: Uint8Array,
-        options: {
-            cache?: boolean;
-            width?: number;
-            height?: number;
-        } = {
+        options: ScriptOptions = {
             cache: false
         }
     ) {
@@ -344,14 +351,7 @@ export class SpriteScript {
         return Base64.fromUint8Array(bytecode);
     }
 
-    static FromBase64(
-        b64: string,
-        options?: {
-            cache?: boolean;
-            width?: number;
-            height?: number;
-        }
-    ): SpriteScript {
+    static FromBase64(b64: string, options?: ScriptOptions): SpriteScript {
         return new SpriteScript(Base64.toUint8Array(b64), options);
     }
 

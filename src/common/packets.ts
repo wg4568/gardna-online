@@ -41,7 +41,9 @@ export enum PacketType {
     KeyUp,
     MouseDown,
     MouseUp,
-    MouseMove
+    MouseMove,
+
+    Sprite
 }
 
 export const KeyDownPacket = {
@@ -67,4 +69,9 @@ export const MouseUpPacket = {
 export const MouseMovePacket = {
     type: PacketType.MouseMove,
     schema: [Type.Uint16, Type.Uint16]
+};
+
+export const SpritePacket = {
+    type: PacketType.Sprite,
+    schema: [Type.String, Type.LongRaw]
 };

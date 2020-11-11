@@ -26,10 +26,18 @@ export enum Type {
     String,
     LongString,
     Array,
-    LongArray
+    LongArray,
+    Raw,
+    LongRaw
 }
 
-export type Data = number | string | boolean | Flags | Uint8Array[];
+export type Data =
+    | number
+    | string
+    | boolean
+    | Flags
+    | Uint8Array
+    | Uint8Array[];
 
 export function DecodeMulti(data: Uint8Array, types: Type[]): Data[] {
     var decoded: Data[] = [];
@@ -99,6 +107,16 @@ export function DecodeMulti(data: Uint8Array, types: Type[]): Data[] {
                     longarray.length * 2 +
                     longarray.map((e) => e.length).reduce((a, b) => a + b);
                 break;
+            case Type.Raw:
+                let raw = DecodeRaw(data, idx);
+                idx += 1 + raw.length;
+                decoded.push(raw);
+                break;
+            case Type.LongRaw:
+                let longraw = DecodeLongRaw(data, idx);
+                idx += 2 + longraw.length;
+                decoded.push(longraw);
+                break;
         }
     }
 
@@ -148,6 +166,12 @@ export function EncodeMulti(data: Data[], types: Type[]): Uint8Array {
                 break;
             case Type.LongArray:
                 elements.push(EncodeLongArray(data[i] as Uint8Array[]));
+                break;
+            case Type.Raw:
+                elements.push(EncodeRaw(data[i] as Uint8Array));
+                break;
+            case Type.LongRaw:
+                elements.push(EncodeLongRaw(data[i] as Uint8Array));
                 break;
         }
     }
@@ -238,6 +262,14 @@ export function EncodeLongArray(data: Uint8Array[]): Uint8Array {
     }
 
     return JoinBuffers(buffers);
+}
+
+export function EncodeRaw(data: Uint8Array): Uint8Array {
+    return JoinBuffers([EncodeUint8(data.length), data]);
+}
+
+export function EncodeLongRaw(data: Uint8Array): Uint8Array {
+    return JoinBuffers([EncodeUint16(data.length), data]);
 }
 
 // TYPE DECODING
@@ -335,4 +367,14 @@ export function DecodeLongArray(
     }
 
     return array;
+}
+
+export function DecodeRaw(data: Uint8Array, idx: number = 0): Uint8Array {
+    var length: number = DecodeUint8(data, idx);
+    return data.subarray(idx + 1, idx + 1 + length);
+}
+
+export function DecodeLongRaw(data: Uint8Array, idx: number = 0): Uint8Array {
+    var length: number = DecodeUint16(data, idx);
+    return data.subarray(idx + 2, idx + 2 + length);
 }

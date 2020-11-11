@@ -6,15 +6,13 @@ import {
     KeyUpPacket,
     MouseDownPacket,
     MouseMovePacket,
-    MouseUpPacket
+    MouseUpPacket,
+    SpritePacket
 } from "../common/packets";
 import { Connection } from "../common/connection";
-import { KeyName } from "../lib/keys";
 
 const server = new WS.Server({ noServer: true });
 const sprites = LoadSprites("sprites");
-
-console.log(sprites);
 
 class Client {
     public static LAST_ID = 0;
@@ -26,18 +24,20 @@ class Client {
         this.id = Client.LAST_ID++;
         this.socket = new Connection(socket);
 
-        this.socket.listen(KeyDownPacket, ([data]) => {
-            console.log(KeyName(data as number));
-        });
-        this.socket.listen(KeyUpPacket, (data) => {});
-        this.socket.listen(MouseDownPacket, (data) => {});
-        this.socket.listen(MouseUpPacket, (data) => {});
-        this.socket.listen(MouseMovePacket, (data) => {});
+        this.socket.listen(KeyDownPacket, ([keycode]) => {});
+        this.socket.listen(KeyUpPacket, ([keycode]) => {});
+        this.socket.listen(MouseDownPacket, ([button, x, y]) => {});
+        this.socket.listen(MouseUpPacket, ([button, x, y]) => {});
+        this.socket.listen(MouseMovePacket, ([x, y]) => {});
     }
 }
 
 server.on("connection", (socket: WebSocket) => {
     var client = new Client(socket);
+
+    sprites.forEach((sprite, name) => {
+        client.socket.send(SpritePacket, [name, sprite]);
+    });
 });
 
 export default server;

@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "listen:server": "nodemon --watch src/**/*.ts --ignore src/client/*.ts --exec ts-node src/server/server.ts",
+        "listen:server": "nodemon --config nodemon.json",
         "listen:client": "webpack --watch",
         "getkeycodes": "node ./getKeycodes.js"
     },
