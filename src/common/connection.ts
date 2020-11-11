@@ -47,4 +47,8 @@ export class Connection {
     send(fmt: PacketFormat, data: Data[]) {
         this.socket.send(CreatePacket(fmt, data));
     }
+
+    sendraw(data: Uint8Array) {
+        this.socket.send(data);
+    }
 }

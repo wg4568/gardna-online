@@ -43,7 +43,11 @@ export enum PacketType {
     MouseUp,
     MouseMove,
 
-    Sprite
+    Sprite,
+    Players,
+    Player,
+    Onboard,
+    Disconnect
 }
 
 export const KeyDownPacket = {
@@ -74,4 +78,24 @@ export const MouseMovePacket = {
 export const SpritePacket = {
     type: PacketType.Sprite,
     schema: [Type.String, Type.LongRaw]
+};
+
+export const PlayersPacket = {
+    type: PacketType.Players,
+    schema: [Type.LongArray]
+};
+
+export const PlayerPacket = {
+    type: PacketType.Player,
+    schema: [Type.Uint16, Type.Float32, Type.Uint16, Type.Uint16]
+};
+
+export const OnboardPacket = {
+    type: PacketType.Onboard,
+    schema: [Type.Uint16, Type.Uint16, Type.Uint16]
+};
+
+export const DisconnectPacket = {
+    type: PacketType.Disconnect,
+    schema: [Type.Uint16]
 };
