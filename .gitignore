@@ -1,5 +1,5 @@
 static/js/bundle.js
-src/common/helpers/keycodes.ts
+src/lib/keys.ts
 .vs
 node_modules
 build

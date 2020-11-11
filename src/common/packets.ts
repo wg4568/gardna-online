@@ -46,12 +46,12 @@ export enum PacketType {
 
 export const KeyDownPacket = {
     type: PacketType.KeyDown,
-    schema: [Type.String]
+    schema: [Type.Uint8]
 };
 
 export const KeyUpPacket = {
     type: PacketType.KeyUp,
-    schema: [Type.String]
+    schema: [Type.Uint8]
 };
 
 export const MouseDownPacket = {

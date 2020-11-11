@@ -1,4 +1,3 @@
-import { OpenEvent } from "ws";
 import { Data } from "../lib/encoding";
 import {
     CreatePacket,

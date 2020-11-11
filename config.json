@@ -5,5 +5,7 @@
     "wss": false,
 
     "server_tps": 60,
-    "client_fps": 60
+    "client_fps": 60,
+
+    "key_file": "./src/lib/keys.ts"
 }
